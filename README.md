@@ -1,14 +1,14 @@
 # FCM Scoring
 
-A Python utility for scoring generated Fuzzy Cognitive Maps (FCMs) against ground truth adjacency matrices using semantic similarity.
+A Python utility for comparing and scoring two Fuzzy Cognitive Maps (FCMs) using semantic similarity embeddings.
 
 ## Features
 
-- **Semantic Similarity Matching**: Uses transformer embeddings to match nodes between generated and ground truth FCMs
-- **Flexible Scoring**: Computes F1, Jaccard, and other metrics
-- **Handle Partial Matches**: Distinguishes between true positives, partial positives, false positives, and false negatives
-- **Configurable**: Adjustable thresholds, scaling factors, and embedding models
-- **Memory Efficient**: Batch processing with configurable batch sizes
+- **Simple API**: Clean function-based interface for comparing FCMs
+- **Flexible Input/Output**: Support CSV and JSON formats for both input and output
+- **Semantic Matching**: Uses transformer embeddings to match nodes between FCMs
+- **Comprehensive Metrics**: F1, Jaccard, and detailed edge matching statistics
+- **Memory Efficient**: Configurable batch processing
 - **Reproducible**: Fixed random seeds for consistency
 
 ## Installation
@@ -42,8 +42,9 @@ Dependencies include:
 from score_fcms import score_fcm
 
 results = score_fcm(
-    gt_csv_path="path/to/ground_truth.csv",
-    gen_json_path="path/to/generated_fcm.json"
+    fcm1_path="path/to/fcm1.csv",
+    fcm2_path="path/to/fcm2.json",
+    output_format="csv"
 )
 
 print(f"F1 Score: {results['F1'].iloc[0]:.4f}")
@@ -53,24 +54,23 @@ print(f"Jaccard Score: {results['Jaccard'].iloc[0]:.4f}")
 ### From Command Line
 
 ```bash
-python score_fcms.py path/to/ground_truth.csv path/to/generated_fcm.json
+python score_fcms.py path/to/fcm1.csv path/to/fcm2.json
 ```
 
 Optional arguments:
 ```bash
-python score_fcms.py ground_truth.csv generated_fcm.json \
+python score_fcms.py fcm1.csv fcm2.json \
     --threshold 0.6 \
     --model-name "Qwen/Qwen3-Embedding-0.6B" \
-    --tp-scale 1.0 \
-    --pp-scale 1.1 \
+    --output-format both \
     --batch-size 2 \
     --output-dir ./results
 ```
 
 ## Input Formats
 
-### Ground Truth CSV
-A square adjacency matrix with node names as both index and columns:
+### CSV Format (Adjacency Matrix)
+A square matrix with node names as both index and columns:
 
 ```csv
 ,cluster_0,cluster_1,cluster_2
@@ -83,7 +83,7 @@ cluster_2,0,-1,0
 - **Values**: positive (reinforcing) or negative (inhibiting)
 - **Empty cells** are treated as 0 (no relationship)
 
-### Generated FCM JSON
+### JSON Format (Edge List)
 Edge-based representation with source, target, and weight:
 
 ```json
@@ -93,31 +93,13 @@ Edge-based representation with source, target, and weight:
       "source": "cluster_0",
       "target": "cluster_1",
       "weight": 0.8,
-      "confidence": 0.95,
       "type": "inter_cluster"
     },
     {
       "source": "cluster_1",
       "target": "cluster_2",
       "weight": -0.5,
-      "confidence": 0.87,
       "type": "inter_cluster"
-    }
-  ]
-}
-```
-
-### Metadata JSON (Optional)
-Enriches cluster information with semantic context:
-
-```json
-{
-  "clusters": [
-    {
-      "id": "cluster_0",
-      "name": "stakeholder_engagement",
-      "summary": "Level of engagement by stakeholders",
-      "concepts": ["involvement", "participation", "feedback"]
     }
   ]
 }
@@ -125,7 +107,10 @@ Enriches cluster information with semantic context:
 
 ## Output
 
-Results are saved to `<dataset>_scoring_results.csv` with columns:
+Results are saved in the specified format(s):
+
+### CSV Output
+Saved as `<filename>_scoring_results.csv` with columns:
 
 | Column | Description |
 |--------|-------------|
@@ -138,8 +123,11 @@ Results are saved to `<dataset>_scoring_results.csv` with columns:
 | `threshold` | Matching threshold used |
 | `tp_scale` | True positive scaling factor |
 | `pp_scale` | Partial positive scaling factor |
-| `gt_nodes` / `gen_nodes` | Node counts |
-| `gt_edges` / `gen_edges` | Edge counts |
+| `fcm1_nodes` / `fcm2_nodes` | Node counts |
+| `fcm1_edges` / `fcm2_edges` | Edge counts |
+
+### JSON Output
+Same data structure in JSON format: `<filename>_scoring_results.json`
 
 ## Configuration
 
@@ -164,42 +152,70 @@ Supported embedding models (any HuggingFace model):
 - `intfloat/e5-base`
 - `intfloat/multilingual-e5-large`
 
-## Example
+## Examples
 
 See [examples/](examples/) for complete working examples with sample data.
 
-Run the example:
+Run the basic example:
 ```bash
 cd examples
 python example.py
 ```
+
+## Jupyter Notebook
+
+A detailed walkthrough is available in `examples/fcm_scoring_walkthrough.ipynb` that demonstrates:
+- Loading FCM data (CSV and JSON)
+- Basic scoring with default parameters
+- Parameter tuning and threshold analysis
+- Interpreting results
 
 ## Performance Tips
 
 1. **GPU Usage**: Automatically uses CUDA if available (falls back to CPU)
 2. **Memory**: Reduce `--batch-size` if you hit OOM errors
 3. **Speed**: Increase `--batch-size` if you have spare VRAM
-4. **Metadata**: Include metadata JSON to improve semantic matching
+4. **Models**: Smaller models are faster (Qwen3-0.6B is recommended)
 
 ## Troubleshooting
 
 ### Out of Memory (OOM)
 Reduce batch size:
 ```bash
-python score_fcms.py ... --batch-size 1
+python score_fcms.py fcm1.csv fcm2.json --batch-size 1
 ```
 
 ### Poor Matching Results
-- Increase threshold (too many false positives)
-- Decrease threshold (too many false negatives)
-- Try a different model: `--model-name "intfloat/e5-base"`
-- Add metadata for better semantic context
+- Try adjusting threshold (lower = more matches, higher = stricter)
+- Experiment with different embedding models
+- Ensure node names are consistent between FCMs
 
-### Missing Metadata
-If metadata file isn't found, the scorer will look for `<dataset>_cluster_metadata.json` in the same directory. You can also specify it manually:
-```bash
-python score_fcms.py ... --metadata-path /path/to/metadata.json
+### File Format Issues
+- CSV must have node names as index (first column)
+- JSON must have an "edges" array with "source", "target", and "weight" fields
+- Use `.csv` or `.json` file extensions for automatic format detection
+
+## API Reference
+
+### `score_fcm(fcm1_path, fcm2_path, ...)`
+
+```python
+score_fcm(
+    fcm1_path: str,                              # Path to first FCM
+    fcm2_path: str,                              # Path to second FCM
+    output_dir: Optional[str] = None,            # Output directory
+    output_format: str = "csv",                  # "csv", "json", or "both"
+    threshold: float = 0.6,                      # Similarity threshold
+    model_name: str = "Qwen/Qwen3-Embedding-0.6B",  # Embedding model
+    tp_scale: float = 1.0,                       # TP scale factor
+    pp_scale: float = 1.1,                       # PP scale factor
+    batch_size: int = 2,                         # Processing batch size
+    seed: int = 42,                              # Random seed
+    verbose: bool = True                         # Print progress
+) -> pd.DataFrame
 ```
+
+Returns a DataFrame with scoring results.
 
 ## License
 

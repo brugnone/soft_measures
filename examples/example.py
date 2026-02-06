@@ -3,8 +3,9 @@ Example usage of the FCM scoring utility.
 
 This script demonstrates:
 1. Using the Python API directly
-2. Scoring an FCM with ground truth
+2. Scoring two FCMs with different formats
 3. Customizing the scoring parameters
+4. Handling different output formats
 """
 
 import os
@@ -18,17 +19,17 @@ from score_fcms import score_fcm
 
 
 def example_basic():
-    """Basic usage with default parameters."""
+    """Basic usage with CSV and JSON formats."""
     print("=" * 70)
-    print("EXAMPLE 1: Basic Scoring")
+    print("EXAMPLE 1: Basic Scoring (CSV vs JSON)")
     print("=" * 70)
     
     gt_path = os.path.join(os.path.dirname(__file__), "example_ground_truth.csv")
     gen_path = os.path.join(os.path.dirname(__file__), "example_generated_fcm.json")
     
     results = score_fcm(
-        gt_csv_path=gt_path,
-        gen_json_path=gen_path,
+        fcm1_path=gt_path,
+        fcm2_path=gen_path,
         verbose=True
     )
     
@@ -38,71 +39,72 @@ def example_basic():
     return results
 
 
-def example_with_metadata():
-    """Scoring with metadata for enriched semantic matching."""
+def example_output_formats():
+    """Scoring with different output formats."""
     print("=" * 70)
-    print("EXAMPLE 2: Scoring with Metadata")
+    print("EXAMPLE 2: Different Output Formats")
     print("=" * 70)
     
     gt_path = os.path.join(os.path.dirname(__file__), "example_ground_truth.csv")
     gen_path = os.path.join(os.path.dirname(__file__), "example_generated_fcm.json")
-    metadata_path = os.path.join(os.path.dirname(__file__), "example_metadata.json")
+    output_dir = os.path.join(os.path.dirname(__file__), "results_csv_json")
     
     results = score_fcm(
-        gt_csv_path=gt_path,
-        gen_json_path=gen_path,
-        metadata_json_path=metadata_path,
+        fcm1_path=gt_path,
+        fcm2_path=gen_path,
+        output_dir=output_dir,
+        output_format='both',
         verbose=True
     )
     
-    print("\nResults DataFrame:")
-    print(results)
-    print()
-    return results
+    print("\nResults saved in both CSV and JSON formats!")
 
 
 def example_custom_parameters():
     """Scoring with custom parameters."""
     print("=" * 70)
-    print("EXAMPLE 3: Custom Parameters")
+    print("EXAMPLE 3: Custom Parameters - Threshold Tuning")
     print("=" * 70)
     
     gt_path = os.path.join(os.path.dirname(__file__), "example_ground_truth.csv")
     gen_path = os.path.join(os.path.dirname(__file__), "example_generated_fcm.json")
     
     # Try different thresholds
+    print("\nTesting different thresholds:\n")
     for threshold in [0.5, 0.7, 0.9]:
-        print(f"\n--- Threshold: {threshold} ---")
+        print(f"--- Threshold: {threshold} ---")
         results = score_fcm(
-            gt_csv_path=gt_path,
-            gen_json_path=gen_path,
+            fcm1_path=gt_path,
+            fcm2_path=gen_path,
             threshold=threshold,
             verbose=False
         )
         print(f"F1 Score: {results['F1'].iloc[0]:.4f}")
         print(f"Jaccard:  {results['Jaccard'].iloc[0]:.4f}")
-        print(f"TP: {int(results['TP'].iloc[0])}, FP: {int(results['FP'].iloc[0])}, "
+        print(f"Edges - TP: {int(results['TP'].iloc[0])}, FP: {int(results['FP'].iloc[0])}, "
               f"FN: {int(results['FN'].iloc[0])}, PP: {int(results['PP'].iloc[0])}")
+        print()
 
 
-def example_custom_output():
-    """Scoring with custom output directory."""
+def example_json_to_csv():
+    """Score JSON-to-JSON FCMs."""
     print("=" * 70)
-    print("EXAMPLE 4: Custom Output Directory")
+    print("EXAMPLE 4: JSON Format Output")
     print("=" * 70)
     
     gt_path = os.path.join(os.path.dirname(__file__), "example_ground_truth.csv")
     gen_path = os.path.join(os.path.dirname(__file__), "example_generated_fcm.json")
-    output_dir = os.path.join(os.path.dirname(__file__), "results")
+    output_dir = os.path.join(os.path.dirname(__file__), "results_json_only")
     
     results = score_fcm(
-        gt_csv_path=gt_path,
-        gen_json_path=gen_path,
+        fcm1_path=gt_path,
+        fcm2_path=gen_path,
         output_dir=output_dir,
+        output_format='json',
         verbose=True
     )
     
-    print(f"\nResults saved to: {output_dir}/")
+    print("\nResults saved in JSON format!")
 
 
 if __name__ == "__main__":
@@ -111,9 +113,9 @@ if __name__ == "__main__":
     
     # Run examples
     results1 = example_basic()
-    results2 = example_with_metadata()
+    example_output_formats()
     example_custom_parameters()
-    example_custom_output()
+    example_json_to_csv()
     
     print("\n" + "=" * 70)
     print("Examples completed! Check the output files for saved results.")
