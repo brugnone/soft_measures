@@ -43,10 +43,10 @@ env/
 
 # Results and outputs
 results/
-*.csv
-*.json
 *_scoring_results.csv
+*_scoring_results.json
+*.json
 
-# Temporary
-.cache/
-*.tmp
+# Example data is tracked, but not generated results
+!examples/*.csv
+!examples/*.json
