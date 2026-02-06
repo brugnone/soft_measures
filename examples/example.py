@@ -19,17 +19,17 @@ from score_fcms import score_fcm
 
 
 def example_basic():
-    """Basic usage with CSV and JSON formats."""
+    """Basic usage with CSV format."""
     print("=" * 70)
-    print("EXAMPLE 1: Basic Scoring (CSV vs JSON)")
+    print("EXAMPLE 1: Basic Scoring (CSV vs CSV)")
     print("=" * 70)
     
-    gt_path = os.path.join(os.path.dirname(__file__), "example_ground_truth.csv")
-    gen_path = os.path.join(os.path.dirname(__file__), "example_generated_fcm.json")
+    fcm1_path = os.path.join(os.path.dirname(__file__), "fcm1.csv")
+    fcm2_path = os.path.join(os.path.dirname(__file__), "fcm2.csv")
     
     results = score_fcm(
-        fcm1_path=gt_path,
-        fcm2_path=gen_path,
+        fcm1_path=fcm1_path,
+        fcm2_path=fcm2_path,
         verbose=True
     )
     
@@ -45,13 +45,13 @@ def example_output_formats():
     print("EXAMPLE 2: Different Output Formats")
     print("=" * 70)
     
-    gt_path = os.path.join(os.path.dirname(__file__), "example_ground_truth.csv")
-    gen_path = os.path.join(os.path.dirname(__file__), "example_generated_fcm.json")
+    fcm1_path = os.path.join(os.path.dirname(__file__), "fcm1.csv")
+    fcm2_path = os.path.join(os.path.dirname(__file__), "fcm2.csv")
     output_dir = os.path.join(os.path.dirname(__file__), "results_csv_json")
     
     results = score_fcm(
-        fcm1_path=gt_path,
-        fcm2_path=gen_path,
+        fcm1_path=fcm1_path,
+        fcm2_path=fcm2_path,
         output_dir=output_dir,
         output_format='both',
         verbose=True
@@ -66,16 +66,16 @@ def example_custom_parameters():
     print("EXAMPLE 3: Custom Parameters - Threshold Tuning")
     print("=" * 70)
     
-    gt_path = os.path.join(os.path.dirname(__file__), "example_ground_truth.csv")
-    gen_path = os.path.join(os.path.dirname(__file__), "example_generated_fcm.json")
+    fcm1_path = os.path.join(os.path.dirname(__file__), "fcm1.csv")
+    fcm2_path = os.path.join(os.path.dirname(__file__), "fcm2.csv")
     
     # Try different thresholds
     print("\nTesting different thresholds:\n")
     for threshold in [0.5, 0.7, 0.9]:
         print(f"--- Threshold: {threshold} ---")
         results = score_fcm(
-            fcm1_path=gt_path,
-            fcm2_path=gen_path,
+            fcm1_path=fcm1_path,
+            fcm2_path=fcm2_path,
             threshold=threshold,
             verbose=False
         )
@@ -87,18 +87,18 @@ def example_custom_parameters():
 
 
 def example_json_to_csv():
-    """Score JSON-to-JSON FCMs."""
+    """Score with JSON output format."""
     print("=" * 70)
     print("EXAMPLE 4: JSON Format Output")
     print("=" * 70)
     
-    gt_path = os.path.join(os.path.dirname(__file__), "example_ground_truth.csv")
-    gen_path = os.path.join(os.path.dirname(__file__), "example_generated_fcm.json")
+    fcm1_path = os.path.join(os.path.dirname(__file__), "fcm1.csv")
+    fcm2_path = os.path.join(os.path.dirname(__file__), "fcm2.csv")
     output_dir = os.path.join(os.path.dirname(__file__), "results_json_only")
     
     results = score_fcm(
-        fcm1_path=gt_path,
-        fcm2_path=gen_path,
+        fcm1_path=fcm1_path,
+        fcm2_path=fcm2_path,
         output_dir=output_dir,
         output_format='json',
         verbose=True
