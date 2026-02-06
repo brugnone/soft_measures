@@ -41,12 +41,7 @@ env/
 .ipynb_checkpoints/
 *.ipynb
 
-# Results and outputs
-results/
-*_scoring_results.csv
-*_scoring_results.json
-*.json
-
 # Example data is tracked, but not generated results
+!examples/*.ipynb
 !examples/*.csv
 !examples/*.json
