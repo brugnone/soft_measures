@@ -177,7 +177,7 @@ class ScoreCalculator:
         return (tp + 0.75 * pp) / denom if denom else 0.0
 
     def convert_matrix(self, df_matrix):
-        values = df_matrix.values
+        values = df_matrix.values.copy()
         columns = df_matrix.columns
         index = df_matrix.index
 
