@@ -456,6 +456,9 @@ def score_fcm(
     # Set output directory
     if output_dir is None:
         output_dir = os.path.dirname(fcm2_path)
+    # If dirname is empty (relative path with no directory), use current directory
+    if output_dir == "":
+        output_dir = "."
     os.makedirs(output_dir, exist_ok=True)
 
     data_name = os.path.splitext(os.path.basename(fcm2_path))[0]
