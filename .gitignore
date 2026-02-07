@@ -40,8 +40,4 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 *.ipynb
-
-# Example data is tracked, but not generated results
-!examples/*.ipynb
-!examples/*.csv
-!examples/*.json
+!fcm_scoreing_walkthrough.ipynb

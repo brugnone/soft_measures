@@ -1,0 +1,19 @@
+[
+  {
+    "Model":"Qwen\/Qwen3-Embedding-0.6B",
+    "data":"fcm2",
+    "F1":0.8017621145,
+    "Jaccard":0.6785714286,
+    "TP":16,
+    "PP":4,
+    "FP":9,
+    "FN":0,
+    "threshold":0.6,
+    "tp_scale":1.0,
+    "pp_scale":1.1,
+    "fcm1_nodes":5,
+    "fcm1_edges":20,
+    "fcm2_nodes":6,
+    "fcm2_edges":29
+  }
+]

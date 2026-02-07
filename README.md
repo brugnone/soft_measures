@@ -70,14 +70,7 @@ python score_fcms.py fcm1.csv fcm2.json \
 ## Input Formats
 
 ### CSV Format (Adjacency Matrix)
-A square matrix with node names as both index and columns:
-
-```csv
-,cluster_0,cluster_1,cluster_2
-cluster_0,0,1,-1
-cluster_1,-1,0,0.5
-cluster_2,0,-1,0
-```
+A square matrix with node names as both index and columns.
 
 - **Diagonal** should be 0 (no self-loops)
 - **Values**: positive (reinforcing) or negative (inhibiting)
@@ -90,16 +83,14 @@ Edge-based representation with source, target, and weight:
 {
   "edges": [
     {
-      "source": "cluster_0",
-      "target": "cluster_1",
+      "source": "node_0",
+      "target": "node_1",
       "weight": 0.8,
-      "type": "inter_cluster"
     },
     {
-      "source": "cluster_1",
-      "target": "cluster_2",
+      "source": "node_1",
+      "target": "node_2",
       "weight": -0.5,
-      "type": "inter_cluster"
     }
   ]
 }

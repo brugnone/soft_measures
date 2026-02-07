@@ -1,0 +1,40 @@
+{
+  "edges": [
+    {
+      "source": "variable_A",
+      "target": "variable_B",
+      "weight": 0.7,
+      "type": "inter_cluster"
+    },
+    {
+      "source": "variable_A",
+      "target": "variable_C",
+      "weight": -0.4,
+      "type": "inter_cluster"
+    },
+    {
+      "source": "variable_B",
+      "target": "variable_A",
+      "weight": 0.8,
+      "type": "inter_cluster"
+    },
+    {
+      "source": "variable_B",
+      "target": "variable_C",
+      "weight": 0.9,
+      "type": "inter_cluster"
+    },
+    {
+      "source": "variable_C",
+      "target": "variable_A",
+      "weight": -0.5,
+      "type": "inter_cluster"
+    },
+    {
+      "source": "variable_C",
+      "target": "variable_B",
+      "weight": 0.6,
+      "type": "inter_cluster"
+    }
+  ]
+}

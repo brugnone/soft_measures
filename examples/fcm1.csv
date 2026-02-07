@@ -1,6 +1,0 @@
-,climate_impact,resource_availability,stakeholder_engagement,policy_implementation,environmental_health
-climate_impact,0,1,-1,1,1
-resource_availability,1,0,1,1,-1
-stakeholder_engagement,-1,1,0,1,1
-policy_implementation,1,1,1,0,1
-environmental_health,1,-1,1,1,0
