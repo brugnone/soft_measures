@@ -208,10 +208,10 @@ score_fcm(
 
 Returns a DataFrame with scoring results.
 
-## License
+<!-- ## License
 
 [Specify your license here]
 
 ## Contact
 
-For questions or issues, contact [your contact information]
+For questions or issues, contact [your contact information] -->
