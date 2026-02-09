@@ -438,6 +438,104 @@ def load_fcm_data(fcm1_path: str, fcm2_path: str) -> Tuple[pd.DataFrame, pd.Data
     return fcm1_matrix, fcm2_matrix
 
 
+def score_fcm_with_scorer(
+    fcm1_path: str,
+    fcm2_path: str,
+    scorer: 'ScoreCalculator',
+    output_dir: Optional[str] = None,
+    output_format: str = "csv",
+    verbose: bool = True
+) -> pd.DataFrame:
+    """
+    Score two FCMs using an existing ScoreCalculator instance.
+    
+    This is more efficient than score_fcm() when scoring multiple pairs,
+    as it reuses the loaded model weights instead of reloading for each pair.
+    
+    Args:
+        fcm1_path: Path to first FCM (CSV or JSON)
+        fcm2_path: Path to second FCM (CSV or JSON)
+        scorer: Pre-initialized ScoreCalculator instance
+        output_dir: Directory to save results. If None, uses fcm2_path directory
+        output_format: Output format - 'csv', 'json', or 'both' (default: csv)
+        verbose: Print detailed information
+    
+    Returns:
+        pd.DataFrame: Results with F1, Jaccard, TP, FP, FN, PP scores and metrics
+    """
+    # Validate inputs
+    if not os.path.exists(fcm1_path):
+        raise FileNotFoundError(f"FCM1 file not found: {fcm1_path}")
+    if not os.path.exists(fcm2_path):
+        raise FileNotFoundError(f"FCM2 file not found: {fcm2_path}")
+
+    # Set output directory
+    if output_dir is None:
+        output_dir = os.path.dirname(fcm2_path)
+    if output_dir == "":
+        output_dir = "."
+    os.makedirs(output_dir, exist_ok=True)
+
+    data_name = os.path.splitext(os.path.basename(fcm2_path))[0]
+
+    # Load data
+    if verbose:
+        print(f"Loading FCM data from {fcm1_path} and {fcm2_path}...")
+    fcm1_matrix, fcm2_matrix = load_fcm_data(fcm1_path, fcm2_path)
+
+    if verbose:
+        print(f"FCM1 matrix shape: {fcm1_matrix.shape}")
+        print(f"FCM2 matrix shape: {fcm2_matrix.shape}")
+
+    # Update scorer data name
+    scorer.data = data_name
+
+    # Calculate scores
+    if verbose:
+        print("Computing embeddings and calculating scores...")
+    result = scorer.calculate_scores(fcm1_matrix, fcm2_matrix)
+
+    if verbose:
+        print("\n" + "=" * 60)
+        print("FCM SCORING RESULTS")
+        print("=" * 60)
+        print(f"Dataset: {data_name}")
+        print(f"Model: {scorer.model_name}")
+        print(f"Threshold: {scorer.threshold}")
+        print(f"\nScores:")
+        print(f"  F1 Score:      {result['F1'].iloc[0]:.4f}")
+        print(f"  Jaccard Score: {result['Jaccard'].iloc[0]:.4f}")
+        print(f"\nEdge Matching:")
+        print(f"  True Positives:    {scorer.TP}")
+        print(f"  Partial Positives: {scorer.PP}")
+        print(f"  False Positives:   {scorer.FP}")
+        print(f"  False Negatives:   {scorer.FN}")
+        print(f"\nGraph Statistics:")
+        print(f"  FCM1 Nodes:  {int(result['fcm1_nodes'].iloc[0])}")
+        print(f"  FCM1 Edges:  {int(result['fcm1_edges'].iloc[0])}")
+        print(f"  FCM2 Nodes:  {int(result['fcm2_nodes'].iloc[0])}")
+        print(f"  FCM2 Edges:  {int(result['fcm2_edges'].iloc[0])}")
+        print("=" * 60)
+
+    # Save results
+    if output_format.lower() in ['csv', 'both']:
+        output_file = os.path.join(output_dir, f"{data_name}_scoring_results.csv")
+        result.to_csv(output_file, index=False)
+        if verbose:
+            print(f"Results saved to: {output_file}")
+    
+    if output_format.lower() in ['json', 'both']:
+        output_file = os.path.join(output_dir, f"{data_name}_scoring_results.json")
+        result.to_json(output_file, orient='records', indent=2)
+        if verbose:
+            print(f"Results saved to: {output_file}")
+
+    if verbose:
+        print()
+
+    return result
+
+
 def score_fcm(
     fcm1_path: str,
     fcm2_path: str,

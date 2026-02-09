@@ -90,6 +90,7 @@ python compare_fcm_directories.py dir1/ dir2/ --output-dir results/
 
 This will:
 - Find all CSV/JSON files with matching names in both directories
+- **Load model weights once** and reuse for all pairs (much faster than individual scoring)
 - Score each pair
 - Save individual results in subdirectories
 - Generate a combined summary CSV/JSON
@@ -235,6 +236,35 @@ score_fcm(
 
 Returns a DataFrame with scoring results.
 
+### `score_fcm_with_scorer(fcm1_path, fcm2_path, scorer, ...)`
+
+```python
+score_fcm_with_scorer(
+    fcm1_path: str,                              # Path to first FCM
+    fcm2_path: str,                              # Path to second FCM
+    scorer: ScoreCalculator,                     # Pre-initialized scorer instance
+    output_dir: Optional[str] = None,            # Output directory
+    output_format: str = "csv",                  # "csv", "json", or "both"
+    verbose: bool = True                         # Print progress
+) -> pd.DataFrame
+```
+
+Scores two FCMs using a pre-initialized ScoreCalculator. **Much faster for multiple pairs** as it reuses loaded model weights.
+
+Example for batch processing:
+```python
+from score_fcms import ScoreCalculator, score_fcm_with_scorer
+
+# Initialize scorer once
+scorer = ScoreCalculator(threshold=0.6, model_name="Qwen/Qwen3-Embedding-0.6B", 
+                         data="batch", tp_scale=1.0, pp_scale=1.1, seed=42)
+scorer.batch_size = 2
+
+# Reuse for multiple pairs
+for fcm1, fcm2 in fcm_pairs:
+    result = score_fcm_with_scorer(fcm1, fcm2, scorer)
+```
+
 ### `compare_directories(dir1, dir2, ...)`
 
 ```python
@@ -243,10 +273,10 @@ compare_directories(
     dir2: str,                                   # Second directory with FCM files
     output_dir: Optional[str] = None,            # Output directory (default: comparison_results)
     output_format: str = "both",                 # "csv", "json", or "both"
-    threshold: float = 0.6,                      # Similarity threshold
+    threshold: float = 0.5,                      # Similarity threshold
     model_name: str = "Qwen/Qwen3-Embedding-0.6B",  # Embedding model
     tp_scale: float = 1.0,                       # TP scale factor
-    pp_scale: float = 1.1,                       # PP scale factor
+    pp_scale: float = 0.6,                       # PP scale factor
     batch_size: int = 2,                         # Processing batch size
     seed: int = 42,                              # Random seed
     verbose: bool = True                         # Print progress
