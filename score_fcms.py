@@ -20,7 +20,7 @@ from typing import Dict, List, Tuple, Optional
 class ScoreCalculator:
     cache = {}
 
-    def __init__(self, threshold, model_name, data, tp_scale=1, pp_scale=1.1, seed=42):
+    def __init__(self, threshold, model_name, data, tp_scale=1, pp_scale=0.6, seed=42):
         # Set seeds for reproducibility
         random.seed(seed)
         np.random.seed(seed)
@@ -187,11 +187,26 @@ class ScoreCalculator:
 
         sources_list = [index[r] for r in row_idx]  # rows → sources
         targets_list = [columns[c] for c in col_idx]  # cols → targets
-        values_list = [float(values[r, c]) if values[r, c] != 'Neutral' else 1.0 for r, c in zip(row_idx, col_idx)]
+        
+        # Convert edge values to float, treating text-based values as +1.0
+        values_list = []
+        for r, c in zip(row_idx, col_idx):
+            val = values[r, c]
+            try:
+                # Try to convert to float
+                numeric_val = float(val)
+                values_list.append(numeric_val)
+            except (ValueError, TypeError):
+                # If it's text (like "Neutral"), treat as +1.0
+                values_list.append(1.0)
 
         return sources_list, targets_list, values_list
 
     def calculate_scores(self, fcm1_matrix, fcm2_matrix):
+        # Store matrix shapes for accurate node counts (includes isolated nodes)
+        self.fcm1_total_nodes = len(fcm1_matrix.index)
+        self.fcm2_total_nodes = len(fcm2_matrix.index)
+        
         self.fcm1_nodes_src, self.fcm1_nodes_tgt, self.fcm1_edge_dir = self.convert_matrix(fcm1_matrix)
         self.fcm2_nodes_src, self.fcm2_nodes_tgt, self.fcm2_edge_dir = self.convert_matrix(fcm2_matrix)
 
@@ -248,9 +263,9 @@ class ScoreCalculator:
                 'threshold': [self.threshold],
                 'tp_scale': [self.tp_scale],
                 'pp_scale': [self.pp_scale],
-                'fcm1_nodes': [len(set(self.fcm1_nodes_src + self.fcm1_nodes_tgt))],
+                'fcm1_nodes': [self.fcm1_total_nodes],
                 'fcm1_edges': [len(self.fcm1_edge_dir)],
-                'fcm2_nodes': [len(set(self.fcm2_nodes_src + self.fcm2_nodes_tgt))],
+                'fcm2_nodes': [self.fcm2_total_nodes],
                 'fcm2_edges': [len(self.fcm2_edge_dir)]
             })
 
@@ -319,9 +334,9 @@ class ScoreCalculator:
             'threshold': [self.threshold],
             'tp_scale': [self.tp_scale],
             'pp_scale': [self.pp_scale],
-            'fcm1_nodes': [len(set(self.fcm1_nodes_src + self.fcm1_nodes_tgt))],
+            'fcm1_nodes': [self.fcm1_total_nodes],
             'fcm1_edges': [len(self.fcm1_edge_dir)],
-            'fcm2_nodes': [len(set(self.fcm2_nodes_src + self.fcm2_nodes_tgt))],
+            'fcm2_nodes': [self.fcm2_total_nodes],
             'fcm2_edges': [len(self.fcm2_edge_dir)]
         })
 
@@ -344,11 +359,19 @@ def load_matrix_from_file(filepath: str) -> pd.DataFrame:
     
     if filepath.endswith('.csv'):
         matrix = pd.read_csv(filepath, index_col=0)
-        # Convert empty strings to zeros
+        
+        # Drop any unnamed columns (often created by trailing commas)
+        unnamed_cols = [col for col in matrix.columns if str(col).startswith('Unnamed:')]
+        if unnamed_cols:
+            matrix = matrix.drop(columns=unnamed_cols)
+        
+        # Convert empty strings and string '0' to integer 0
         matrix = matrix.replace('', 0)
         matrix = matrix.replace('""', 0)
-        # Ensure all values are numeric
-        matrix = matrix.apply(pd.to_numeric, errors='coerce').fillna(0)
+        matrix = matrix.replace('0', 0)  # Convert string '0' to integer 0
+        
+        # Don't force conversion to numeric - let convert_matrix handle text values
+        # This preserves values like "Neutral" which will be converted to 1.0 later
         return matrix
     
     elif filepath.endswith('.json'):
@@ -423,7 +446,7 @@ def score_fcm(
     threshold: float = 0.6,
     model_name: str = "Qwen/Qwen3-Embedding-0.6B",
     tp_scale: float = 1.0,
-    pp_scale: float = 1.1,
+    pp_scale: float = 0.6,
     batch_size: int = 2,
     seed: int = 42,
     verbose: bool = True
@@ -439,7 +462,7 @@ def score_fcm(
         threshold: Similarity threshold for matching (default: 0.6)
         model_name: Embedding model to use (default: Qwen/Qwen3-Embedding-0.6B)
         tp_scale: Scale factor for true positives (default: 1.0)
-        pp_scale: Scale factor for partial positives (default: 1.1)
+        pp_scale: Scale factor for partial positives (default: 0.6)
         batch_size: Batch size for processing (lower = less VRAM)
         seed: Random seed for reproducibility
         verbose: Print detailed information

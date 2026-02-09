@@ -67,6 +67,33 @@ python score_fcms.py fcm1.csv fcm2.json \
     --output-dir ./results
 ```
 
+### Batch Comparison of Directories
+
+Compare all matching FCM files from two directories:
+
+```python
+from compare_fcm_directories import compare_directories
+
+results = compare_directories(
+    dir1="path/to/first_set",
+    dir2="path/to/second_set",
+    output_dir="comparison_results"
+)
+
+print(f"Average F1: {results['F1'].mean():.4f}")
+```
+
+Or from command line:
+```bash
+python compare_fcm_directories.py dir1/ dir2/ --output-dir results/
+```
+
+This will:
+- Find all CSV/JSON files with matching names in both directories
+- Score each pair
+- Save individual results in subdirectories
+- Generate a combined summary CSV/JSON
+
 ## Input Formats
 
 ### CSV Format (Adjacency Matrix)
@@ -207,6 +234,26 @@ score_fcm(
 ```
 
 Returns a DataFrame with scoring results.
+
+### `compare_directories(dir1, dir2, ...)`
+
+```python
+compare_directories(
+    dir1: str,                                   # First directory with FCM files
+    dir2: str,                                   # Second directory with FCM files
+    output_dir: Optional[str] = None,            # Output directory (default: comparison_results)
+    output_format: str = "both",                 # "csv", "json", or "both"
+    threshold: float = 0.6,                      # Similarity threshold
+    model_name: str = "Qwen/Qwen3-Embedding-0.6B",  # Embedding model
+    tp_scale: float = 1.0,                       # TP scale factor
+    pp_scale: float = 1.1,                       # PP scale factor
+    batch_size: int = 2,                         # Processing batch size
+    seed: int = 42,                              # Random seed
+    verbose: bool = True                         # Print progress
+) -> pd.DataFrame
+```
+
+Compares all FCM files with matching names from two directories. Returns a combined DataFrame with results for all pairs.
 
 <!-- ## License
 

@@ -1,0 +1,2 @@
+Model,data,F1,Jaccard,TP,PP,FP,FN,threshold,tp_scale,pp_scale,fcm1_nodes,fcm1_edges,fcm2_nodes,fcm2_edges
+Qwen/Qwen3-Embedding-0.6B,sample1,0.801762114537445,0.6785714285714286,16,4,9,0,0.5,1.0,1.1,5,20,6,29
