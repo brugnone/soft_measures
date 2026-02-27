@@ -44,3 +44,15 @@ env/
 
 # Results directory (contains scoring outputs)
 results/
+
+# Output files
+*.log
+*_output.txt
+comparison_output.txt
+osw_output.txt
+rescore_output.log
+
+# CSV results (keep examples)
+*.csv
+!examples/*.csv
+!examples/**/*.csv

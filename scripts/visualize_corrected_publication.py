@@ -1,0 +1,284 @@
+"""
+Generate publication-ready boxplot visualizations from the CORRECT FCM comparison results.
+"""
+
+# Use Agg backend to prevent interactive display
+import matplotlib
+matplotlib.use('Agg')
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+
+# Set style for publication quality
+sns.set_style("whitegrid")
+sns.set_context("paper", font_scale=1.4)
+plt.rcParams['figure.dpi'] = 300
+plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams['font.sans-serif'] = ['Arial']
+
+# Load corrected results
+results_file = r"C:\Users\Nbrug\Desktop\fcm_comparison_results_CORRECT\all_fcm_comparisons_CORRECT.csv"
+df = pd.read_csv(results_file)
+
+print(f"Loaded {len(df)} comparisons from corrected results")
+print(f"Datasets: {df['dataset'].unique()}")
+
+# Create output directory
+output_dir = r"C:\Users\Nbrug\Desktop\fcm_comparison_results_CORRECT\visualizations"
+os.makedirs(output_dir, exist_ok=True)
+
+# Map dataset names for display
+dataset_display_names = {
+    'biodiversity': 'Biodiversity',
+    'flpp': 'FLPP',
+    'osw': 'Gulf OSW',
+    'red_snapper': 'Red Snapper'
+}
+df['dataset_display'] = df['dataset'].map(dataset_display_names)
+
+# Rename columns to match AI/GT convention
+df['AI_nodes'] = df['fcm2_nodes']
+df['AI_edges'] = df['fcm2_edges']
+df['GT_nodes'] = df['fcm1_nodes']
+df['GT_edges'] = df['fcm1_edges']
+
+# ============================================================================
+# FIGURE 1: Edge Matching Metrics (TP, PP, FP, FN)
+# ============================================================================
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+fig.suptitle('Edge Classification Metrics by Dataset', fontsize=16, fontweight='bold', y=0.995)
+
+metrics = ['TP', 'PP', 'FP', 'FN']
+metric_labels = {
+    'TP': 'True Positives (TP)',
+    'PP': 'Partial Positives (PP)', 
+    'FP': 'False Positives (FP)',
+    'FN': 'False Negatives (FN)'
+}
+colors = ['#2ecc71', '#3498db', '#e74c3c', '#f39c12']
+
+for idx, metric in enumerate(metrics):
+    ax = axes[idx // 2, idx % 2]
+    
+    # Create boxplot
+    bp = ax.boxplot(
+        [df[df['dataset']==ds][metric].values for ds in ['biodiversity', 'flpp', 'osw', 'red_snapper']],
+        labels=[dataset_display_names[ds] for ds in ['biodiversity', 'flpp', 'osw', 'red_snapper']],
+        patch_artist=True,
+        showmeans=True,
+        meanprops=dict(marker='D', markerfacecolor='red', markeredgecolor='red', markersize=5)
+    )
+    
+    # Color the boxes
+    for patch in bp['boxes']:
+        patch.set_facecolor(colors[idx])
+        patch.set_alpha(0.7)
+    
+    ax.set_ylabel('Number of Edges', fontsize=11, fontweight='bold')
+    ax.set_xlabel('Dataset', fontsize=10)
+    ax.set_title(metric_labels[metric], fontsize=12, fontweight='bold')
+    ax.grid(True, alpha=0.3)
+    ax.tick_params(axis='x', rotation=0)
+
+plt.tight_layout()
+output_file = os.path.join(output_dir, 'edge_matching_metrics_boxplots.png')
+plt.savefig(output_file, dpi=300, bbox_inches='tight')
+plt.close()
+
+print(f"\n[OK] Saved: {output_file}")
+file_size = os.path.getsize(output_file) / 1024
+print(f"  Size: {file_size:.1f} KB")
+
+# ============================================================================
+# FIGURE 2: Performance Metrics (F1 and Jaccard)
+# ============================================================================
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+fig.suptitle('Performance Metrics by Dataset', fontsize=16, fontweight='bold')
+
+# F1 Score
+bp1 = axes[0].boxplot(
+    [df[df['dataset']==ds]['F1'].values for ds in ['biodiversity', 'flpp', 'osw', 'red_snapper']],
+    labels=[dataset_display_names[ds] for ds in ['biodiversity', 'flpp', 'osw', 'red_snapper']],
+    patch_artist=True,
+    showmeans=True,
+    meanprops=dict(marker='D', markerfacecolor='red', markeredgecolor='red', markersize=5)
+)
+for patch in bp1['boxes']:
+    patch.set_facecolor('#3498db')
+    patch.set_alpha(0.7)
+axes[0].set_ylabel('F1 Score', fontsize=11, fontweight='bold')
+axes[0].set_xlabel('Dataset', fontsize=10)
+axes[0].set_title('F1 Score', fontsize=12, fontweight='bold')
+axes[0].grid(True, alpha=0.3)
+axes[0].set_ylim([0, 1.05])
+
+# Jaccard Index
+bp2 = axes[1].boxplot(
+    [df[df['dataset']==ds]['Jaccard'].values for ds in ['biodiversity', 'flpp', 'osw', 'red_snapper']],
+    labels=[dataset_display_names[ds] for ds in ['biodiversity', 'flpp', 'osw', 'red_snapper']],
+    patch_artist=True,
+    showmeans=True,
+    meanprops=dict(marker='D', markerfacecolor='red', markeredgecolor='red', markersize=5)
+)
+for patch in bp2['boxes']:
+    patch.set_facecolor('#9b59b6')
+    patch.set_alpha(0.7)
+axes[1].set_ylabel('Jaccard Index', fontsize=11, fontweight='bold')
+axes[1].set_xlabel('Dataset', fontsize=10)
+axes[1].set_title('Jaccard Index', fontsize=12, fontweight='bold')
+axes[1].grid(True, alpha=0.3)
+axes[1].set_ylim([0, 1.05])
+
+plt.tight_layout()
+output_file = os.path.join(output_dir, 'performance_metrics_boxplots.png')
+plt.savefig(output_file, dpi=300, bbox_inches='tight')
+plt.close()
+
+print(f"\n[OK] Saved: {output_file}")
+file_size = os.path.getsize(output_file) / 1024
+print(f"  Size: {file_size:.1f} KB")
+
+# ============================================================================
+# FIGURE 3: Node Counts (AI-generated vs Ground Truth)
+# ============================================================================
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+fig.suptitle('Node Counts: AI-Generated vs. Ground Truth', fontsize=16, fontweight='bold')
+
+# AI-generated node counts
+bp1 = axes[0].boxplot(
+    [df[df['dataset']==ds]['AI_nodes'].values for ds in ['biodiversity', 'flpp', 'osw', 'red_snapper']],
+    labels=[dataset_display_names[ds] for ds in ['biodiversity', 'flpp', 'osw', 'red_snapper']],
+    patch_artist=True,
+    showmeans=True,
+    meanprops=dict(marker='D', markerfacecolor='red', markeredgecolor='red', markersize=5)
+)
+for patch in bp1['boxes']:
+    patch.set_facecolor('#e67e22')
+    patch.set_alpha(0.7)
+axes[0].set_ylabel('Number of Nodes', fontsize=11, fontweight='bold')
+axes[0].set_xlabel('Dataset', fontsize=10)
+axes[0].set_title('AI-Generated FCMs', fontsize=12, fontweight='bold')
+axes[0].grid(True, alpha=0.3)
+
+# Ground truth node counts
+bp2 = axes[1].boxplot(
+    [df[df['dataset']==ds]['GT_nodes'].values for ds in ['biodiversity', 'flpp', 'osw', 'red_snapper']],
+    labels=[dataset_display_names[ds] for ds in ['biodiversity', 'flpp', 'osw', 'red_snapper']],
+    patch_artist=True,
+    showmeans=True,
+    meanprops=dict(marker='D', markerfacecolor='red', markeredgecolor='red', markersize=5)
+)
+for patch in bp2['boxes']:
+    patch.set_facecolor('#16a085')
+    patch.set_alpha(0.7)
+axes[1].set_ylabel('Number of Nodes', fontsize=11, fontweight='bold')
+axes[1].set_xlabel('Dataset', fontsize=10)
+axes[1].set_title('Ground Truth FCMs', fontsize=12, fontweight='bold')
+axes[1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+output_file = os.path.join(output_dir, 'node_counts_boxplots.png')
+plt.savefig(output_file, dpi=300, bbox_inches='tight')
+plt.close()
+
+print(f"\n[OK] Saved: {output_file}")
+file_size = os.path.getsize(output_file) / 1024
+print(f"  Size: {file_size:.1f} KB")
+
+# ============================================================================
+# FIGURE 4: Edge Counts (AI-generated vs Ground Truth)
+# ============================================================================
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+fig.suptitle('Edge Counts: AI-Generated vs. Ground Truth', fontsize=16, fontweight='bold')
+
+# AI-generated edge counts
+bp1 = axes[0].boxplot(
+    [df[df['dataset']==ds]['AI_edges'].values for ds in ['biodiversity', 'flpp', 'osw', 'red_snapper']],
+    labels=[dataset_display_names[ds] for ds in ['biodiversity', 'flpp', 'osw', 'red_snapper']],
+    patch_artist=True,
+    showmeans=True,
+    meanprops=dict(marker='D', markerfacecolor='red', markeredgecolor='red', markersize=5)
+)
+for patch in bp1['boxes']:
+    patch.set_facecolor('#e74c3c')
+    patch.set_alpha(0.7)
+axes[0].set_ylabel('Number of Edges', fontsize=11, fontweight='bold')
+axes[0].set_xlabel('Dataset', fontsize=10)
+axes[0].set_title('AI-Generated FCMs', fontsize=12, fontweight='bold')
+axes[0].grid(True, alpha=0.3)
+
+# Ground truth edge counts
+bp2 = axes[1].boxplot(
+    [df[df['dataset']==ds]['GT_edges'].values for ds in ['biodiversity', 'flpp', 'osw', 'red_snapper']],
+    labels=[dataset_display_names[ds] for ds in ['biodiversity', 'flpp', 'osw', 'red_snapper']],
+    patch_artist=True,
+    showmeans=True,
+    meanprops=dict(marker='D', markerfacecolor='red', markeredgecolor='red', markersize=5)
+)
+for patch in bp2['boxes']:
+    patch.set_facecolor('#c0392b')
+    patch.set_alpha(0.7)
+axes[1].set_ylabel('Number of Edges', fontsize=11, fontweight='bold')
+axes[1].set_xlabel('Dataset', fontsize=10)
+axes[1].set_title('Ground Truth FCMs', fontsize=12, fontweight='bold')
+axes[1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+output_file = os.path.join(output_dir, 'edge_counts_boxplots.png')
+plt.savefig(output_file, dpi=300, bbox_inches='tight')
+plt.close()
+
+print(f"\n[OK] Saved: {output_file}")
+file_size = os.path.getsize(output_file) / 1024
+print(f"  Size: {file_size:.1f} KB")
+
+# ============================================================================
+# Print detailed statistics
+# ============================================================================
+print("\n" + "="*80)
+print("SUMMARY STATISTICS")
+print("="*80)
+
+for dataset in ['biodiversity', 'flpp', 'osw', 'red_snapper']:
+    ds_df = df[df['dataset'] == dataset]
+    display_name = dataset_display_names[dataset]
+    
+    print(f"\n{display_name.upper()}:")
+    print("-" * 80)
+    print(f"Number of comparisons: {len(ds_df)}")
+    
+    print("\nPerformance Metrics:")
+    print(f"  F1 Score:     Mean={ds_df['F1'].mean():.3f}, Median={ds_df['F1'].median():.3f}, "
+          f"SD={ds_df['F1'].std():.3f}, Range=[{ds_df['F1'].min():.3f}, {ds_df['F1'].max():.3f}]")
+    print(f"  Jaccard Index: Mean={ds_df['Jaccard'].mean():.3f}, Median={ds_df['Jaccard'].median():.3f}, "
+          f"SD={ds_df['Jaccard'].std():.3f}, Range=[{ds_df['Jaccard'].min():.3f}, {ds_df['Jaccard'].max():.3f}]")
+    
+    print("\nEdge Classification:")
+    for metric in ['TP', 'PP', 'FP', 'FN']:
+        data = ds_df[metric]
+        print(f"  {metric}: Mean={data.mean():6.1f}, Median={data.median():6.1f}, "
+              f"SD={data.std():6.1f}, Range=[{data.min():.0f}, {data.max():.0f}]")
+    
+    print("\nGraph Structure (AI-Generated):")
+    print(f"  Nodes: Mean={ds_df['AI_nodes'].mean():6.1f}, Median={ds_df['AI_nodes'].median():6.1f}, "
+          f"Range=[{ds_df['AI_nodes'].min():.0f}, {ds_df['AI_nodes'].max():.0f}]")
+    print(f"  Edges: Mean={ds_df['AI_edges'].mean():6.1f}, Median={ds_df['AI_edges'].median():.6.1f}, "
+          f"Range=[{ds_df['AI_edges'].min():.0f}, {ds_df['AI_edges'].max():.0f}]")
+    
+    print("\nGraph Structure (Ground Truth):")
+    print(f"  Nodes: Mean={ds_df['GT_nodes'].mean():6.1f}, Median={ds_df['GT_nodes'].median():6.1f}, "
+          f"Range=[{ds_df['GT_nodes'].min():.0f}, {ds_df['GT_nodes'].max():.0f}]")
+    print(f"  Edges: Mean={ds_df['GT_edges'].mean():6.1f}, Median={ds_df['GT_edges'].median():6.1f}, "
+          f"Range=[{ds_df['GT_edges'].min():.0f}, {ds_df['GT_edges'].max():.0f}]")
+
+print("\n" + "="*80)
+print("VISUALIZATION COMPLETE")
+print("="*80)
+print(f"\nAll visualizations saved to: {output_dir}")
+print("\nGenerated figures:")
+print("  1. edge_matching_metrics_boxplots.png - TP, PP, FP, FN by dataset")
+print("  2. performance_metrics_boxplots.png - F1 and Jaccard scores")
+print("  3. node_counts_boxplots.png - AI vs GT node counts")
+print("  4. edge_counts_boxplots.png - AI vs GT edge counts")

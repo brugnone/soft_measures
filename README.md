@@ -34,6 +34,44 @@ Dependencies include:
 - `scipy` - Scientific computing (Hungarian algorithm for matching)
 - `numpy` - Numerical computing
 
+## Repository Structure
+
+```
+soft_measures/
+├── score_fcms.py           # Core FCM scoring engine
+├── requirements.txt        # Python dependencies
+├── README.md              # This file
+├── examples/              # Sample data and walkthrough notebook
+├── scripts/               # Analysis and visualization scripts
+│   ├── rescore_all_with_correct_params.py  # Batch rescoring script
+│   ├── plot_gt_vs_ai.py                    # GT vs AI scatter plots
+│   └── visualize_corrected_publication.py  # Publication boxplots
+└── archive/               # Deprecated/old scripts
+```
+
+### Analysis Scripts
+
+The `scripts/` directory contains utilities for batch analysis and visualization:
+
+- **`rescore_all_with_correct_params.py`**: Batch rescore multiple FCM datasets with correct parameter ordering (fcm1=ground truth, fcm2=AI-generated)
+- **`plot_gt_vs_ai.py`**: Generate scatter plots comparing ground truth vs AI-generated FCM sizes (nodes/edges) with F1 score coloring
+- **`visualize_corrected_publication.py`**: Create publication-ready boxplots showing edge matching metrics and performance across datasets
+
+### Parameter Convention
+
+**Important**: The scoring functions follow this convention:
+- **`fcm1`**: Reference/ground truth FCM
+- **`fcm2`**: Prediction/AI-generated FCM
+
+This affects the interpretation of metrics:
+- `FP` (False Positives): Edges in fcm2 not matched in fcm1
+- `FN` (False Negatives): Edges in fcm1 not matched in fcm2
+- Identity constraints:
+  - `TP + PP + FN = fcm1_edges` (reference)
+  - `TP + PP + FP = fcm2_edges` (prediction)
+
+The embedding model uses **asymmetric encoding**: fcm2 edges receive an instruction prompt while fcm1 edges don't, making the parameter order non-interchangeable.
+
 ## Quick Start
 
 ### As a Python Function
