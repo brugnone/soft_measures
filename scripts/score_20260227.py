@@ -1,18 +1,15 @@
 """
-Score FCM comparisons for AI batch: fcm_ai_20260227_160145
+Score FCM comparisons for a batch of AI-generated FCMs.
 
-Compares AI-generated FCMs against ground-truth FCMs with CORRECT parameter order:
-  - fcm1_path = GT file (ground truth / reference)
-  - fcm2_path = AI file (prediction)
+Expected directory structure (participant-per-subfolder):
+  AI: {batch_dir}/{Dataset}/{participant_id}/{file}.csv
+      e.g. Biodiversity/BD001/BD001.csv
+           Gulf OSW/AE/AE_IEA-Wind CM - AE.csv
+           Red snapper/357392_BeFa_7_26_21/357392_BeFa_7_26_21.csv
 
-New directory structure (vs previous batch):
-  Each participant now has a subfolder containing their CSV:
-    AI: fcm_ai_20260227_160145/{Dataset}/{participant_id}/{file}.csv
-    e.g. Biodiversity/BD001/BD001.csv
-         Gulf OSW/AE/AE_IEA-Wind CM - AE.csv
-         Red snapper/357392_BeFa_7_26_21/357392_BeFa_7_26_21.csv
-
-Results are saved to: C:\\Users\\Nbrug\\Desktop\\fcm_comparison_results_20260227\\
+Usage:
+  python score_20260227.py                          # defaults (Feb 27 batch 1)
+  python score_20260227.py <ai_dir> <output_dir>    # custom paths
 """
 
 import pandas as pd
@@ -26,17 +23,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from score_fcms import score_fcm_with_scorer
 
 
-def find_all_file_pairs():
+def find_all_file_pairs(ai_base_dir):
     """
-    Find all AI-GT file pairs for the 20260227 batch.
+    Find all AI-GT file pairs.
 
     AI directory structure: each participant is a subfolder containing one CSV.
-    GT directory is unchanged from previous batches.
+    GT directory is fixed.
 
     Returns:
         dict: {dataset_name: [(ai_file, gt_file, file_id), ...]}
     """
-    ai_base_dir = r'C:\Users\Nbrug\Desktop\fcm_ai_20260227_160145'
     gt_base_dir = r'C:\Users\Nbrug\Desktop\fcm_gt'
 
     dataset_dir_mapping = {
@@ -128,12 +124,13 @@ def find_all_file_pairs():
     return all_pairs
 
 
-def score_all_datasets(model_name='Qwen/Qwen3-Embedding-0.6B',
+def score_all_datasets(ai_base_dir, output_base_dir,
+                       model_name='Qwen/Qwen3-Embedding-0.6B',
                        threshold=0.6, tp_scale=1.0, pp_scale=0.6, data='v2'):
     """Score all datasets and save combined results."""
-
+    batch_name = Path(ai_base_dir).name
     print("=" * 80)
-    print("SCORING FCM COMPARISONS: fcm_ai_20260227_160145 vs Ground Truth")
+    print(f"SCORING FCM COMPARISONS: {batch_name} vs Ground Truth")
     print("=" * 80)
     print(f"\nModel:      {model_name}")
     print(f"Parameters: threshold={threshold}, tp_scale={tp_scale}, pp_scale={pp_scale}")
@@ -142,13 +139,13 @@ def score_all_datasets(model_name='Qwen/Qwen3-Embedding-0.6B',
     print(f"  fcm2 = AI (prediction) – encoded WITH instruction prompt")
     print("=" * 80)
 
-    all_pairs = find_all_file_pairs()
+    all_pairs = find_all_file_pairs(ai_base_dir)
     total_pairs = sum(len(v) for v in all_pairs.values())
     print(f"\nTotal comparisons: {total_pairs}")
 
     # Create output directory
-    output_base_dir = Path(r'C:\Users\Nbrug\Desktop\fcm_comparison_results_20260227')
-    output_base_dir.mkdir(exist_ok=True)
+    output_base_dir = Path(output_base_dir)
+    output_base_dir.mkdir(parents=True, exist_ok=True)
     print(f"Output dir: {output_base_dir}")
 
     # Load model once
@@ -248,7 +245,7 @@ def score_all_datasets(model_name='Qwen/Qwen3-Embedding-0.6B',
     ]
     combined = combined[[c for c in col_order if c in combined.columns]]
 
-    out_file = output_base_dir / 'all_fcm_comparisons_20260227.csv'
+    out_file = output_base_dir / f'all_fcm_comparisons_{Path(ai_base_dir).name}.csv'
     combined.to_csv(out_file, index=False)
     print(f"\n[OK] Combined CSV → {out_file}")
     print(f"     Total rows: {len(combined)}")
@@ -270,7 +267,23 @@ def score_all_datasets(model_name='Qwen/Qwen3-Embedding-0.6B',
 
 
 if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description='Score FCM batch vs ground truth')
+    parser.add_argument('ai_dir', nargs='?',
+                        default=r'C:\Users\Nbrug\Desktop\fcm_ai_20260227_160145',
+                        help='Path to AI batch directory')
+    parser.add_argument('output_dir', nargs='?',
+                        default=None,
+                        help='Output directory (default: Desktop/fcm_comparison_results_<batch_name>)')
+    args = parser.parse_args()
+
+    out_dir = args.output_dir or str(
+        Path(r'C:\Users\Nbrug\Desktop') / f'fcm_comparison_results_{Path(args.ai_dir).name}'
+    )
+
     score_all_datasets(
+        ai_base_dir=args.ai_dir,
+        output_base_dir=out_dir,
         model_name='Qwen/Qwen3-Embedding-0.6B',
         threshold=0.6,
         tp_scale=1.0,
