@@ -89,7 +89,7 @@ BATCH_COLORS = {
     'GPT-5-mini':               '#E84855',   # red
     'GPT-5.2 + explanation':    '#3BB273',   # green
     'Gemini 2.5 Flash':         '#F4A261',   # orange
-    'Gemini 3 Flash':           '#8B5CF6',   # purple
+    'Gemini 3 Flash':           '#E040FB',   # magenta
 }
 
 # ── Boxplot helper ─────────────────────────────────────────────────────────────
