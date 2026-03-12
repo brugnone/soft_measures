@@ -50,18 +50,18 @@ OSW_NAME_MAP = {'DougP': 'DoP', 'MarianaS': 'MaS', 'MichelleS': 'MiS', 'NREL2': 
 
 # All 12 AI models: (method_key, label, ai_batch_dir)
 AI_MODELS = [
-    ('gpt5mini',       'GPT-5-mini (R)',         DESKTOP / 'fcm_ai_20260225'),
-    ('gpt5mini_nr',    'GPT-5-mini (NR)',         DESKTOP / 'fcm_ai_20260227_160145'),
-    ('gpt52',          'GPT-5.2 (R)',             DESKTOP / 'fcm_adjacency_matrices_fcm_interviews_gpt52_20260227_174543'),
-    ('gpt52_nr',       'GPT-5.2 (NR)',            DESKTOP / 'no reasoning results' / 'fcm_adjacency_matrices_fcm_interviews_gpt52_nr_20260303_192229'),
-    ('gemini25flash',  'Gemini 2.5 Flash (R)',    DESKTOP / 'fcm_adjacency_matrices_fcm_interviews_gemini25flash_20260301_182916'),
-    ('gemini25flash_nr','Gemini 2.5 Flash (NR)',  DESKTOP / 'no reasoning results' / 'fcm_adjacency_matrices_fcm_interviews_gemini25flash_nr_20260303_192146'),
-    ('gemini3flash',   'Gemini 3 Flash (R)',      DESKTOP / 'fcm_adjacency_matrices_fcm_interviews_gemini3flash_20260301_182933'),
-    ('gemini3flash_nr','Gemini 3 Flash (NR)',     DESKTOP / 'no reasoning results' / 'fcm_adjacency_matrices_fcm_interviews_gemini3flash_nr_20260303_192210'),
-    ('qwen',           'Qwen (R)',                DESKTOP / 'fcm_adjacency_matrices_fcm_interviews_20260306_231820_qwen'),
-    ('qwen_nr',        'Qwen (NR)',               DESKTOP / 'qwen3_14b_nr_20260310_194137' / 'fcm_adjacency_matrices_fcm_interviews_qwen3_14b_nr_20260310_194137'),
-    ('mistral',        'Mistral (R)',             DESKTOP / 'mistral'),
-    ('mistral_nr',     'Mistral (NR)',            DESKTOP / 'mistral_24b_nr'),
+    ('gpt5mini',       'GPT-5-mini (E)',         DESKTOP / 'fcm_ai_20260225'),
+    ('gpt5mini_nr',    'GPT-5-mini (NE)',         DESKTOP / 'fcm_ai_20260227_160145'),
+    ('gpt52',          'GPT-5.2 (E)',             DESKTOP / 'fcm_adjacency_matrices_fcm_interviews_gpt52_20260227_174543'),
+    ('gpt52_nr',       'GPT-5.2 (NE)',            DESKTOP / 'no reasoning results' / 'fcm_adjacency_matrices_fcm_interviews_gpt52_nr_20260303_192229'),
+    ('gemini25flash',  'Gemini 2.5 Flash (E)',    DESKTOP / 'fcm_adjacency_matrices_fcm_interviews_gemini25flash_20260301_182916'),
+    ('gemini25flash_nr','Gemini 2.5 Flash (NE)',  DESKTOP / 'no reasoning results' / 'fcm_adjacency_matrices_fcm_interviews_gemini25flash_nr_20260303_192146'),
+    ('gemini3flash',   'Gemini 3 Flash (E)',      DESKTOP / 'fcm_adjacency_matrices_fcm_interviews_gemini3flash_20260301_182933'),
+    ('gemini3flash_nr','Gemini 3 Flash (NE)',     DESKTOP / 'no reasoning results' / 'fcm_adjacency_matrices_fcm_interviews_gemini3flash_nr_20260303_192210'),
+    ('qwen',           'Qwen (E)',                DESKTOP / 'fcm_adjacency_matrices_fcm_interviews_20260306_231820_qwen'),
+    ('qwen_nr',        'Qwen (NE)',               DESKTOP / 'qwen3_14b_nr_20260310_194137' / 'fcm_adjacency_matrices_fcm_interviews_qwen3_14b_nr_20260310_194137'),
+    ('mistral',        'Mistral (E)',             DESKTOP / 'mistral'),
+    ('mistral_nr',     'Mistral (NE)',            DESKTOP / 'mistral_24b_nr'),
 ]
 
 MODEL_ORDER = [m[0] for m in AI_MODELS]

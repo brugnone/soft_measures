@@ -37,7 +37,7 @@ plt.rcParams.update({
 DESKTOP  = Path(r'C:\Users\Nbrug\Desktop')
 OUT_DIR  = DESKTOP / 'fcm_visualizations_all_methods'
 OUT_DIR.mkdir(exist_ok=True)
-DATA_CSV = DESKTOP / 'all_fcm_results_combined.csv'
+DATA_CSV = DESKTOP / 'all_non-aco_fcm_results_combined.csv'
 
 # ── Method display names & colours ───────────────────────────────────────────
 METHOD_ORDER = [
@@ -56,18 +56,18 @@ METHOD_ORDER = [
 ]
 
 METHOD_LABELS = {
-    'gpt5mini':         'GPT-5-mini\n(reasoning)',
-    'gpt5mini_nr':      'GPT-5-mini\n(no reasoning)',
-    'gpt52':            'GPT-5.2\n(reasoning)',
-    'gpt52_nr':         'GPT-5.2\n(no reasoning)',
-    'gemini25flash':    'Gemini 2.5 Flash\n(reasoning)',
-    'gemini25flash_nr': 'Gemini 2.5 Flash\n(no reasoning)',
-    'gemini3flash':     'Gemini 3 Flash\n(reasoning)',
-    'gemini3flash_nr':  'Gemini 3 Flash\n(no reasoning)',
-    'qwen':             'Qwen\n(reasoning)',
-    'qwen_nr':          'Qwen\n(no reasoning)',
-    'mistral':          'Mistral\n(reasoning)',
-    'mistral_nr':       'Mistral\n(no reasoning)',
+    'gpt5mini':         'GPT-5-mini\n(explanation)',
+    'gpt5mini_nr':      'GPT-5-mini\n(no explanation)',
+    'gpt52':            'GPT-5.2\n(explanation)',
+    'gpt52_nr':         'GPT-5.2\n(no explanation)',
+    'gemini25flash':    'Gemini 2.5 Flash\n(explanation)',
+    'gemini25flash_nr': 'Gemini 2.5 Flash\n(no explanation)',
+    'gemini3flash':     'Gemini 3 Flash\n(explanation)',
+    'gemini3flash_nr':  'Gemini 3 Flash\n(no explanation)',
+    'qwen':             'Qwen\n(explanation)',
+    'qwen_nr':          'Qwen\n(no explanation)',
+    'mistral':          'Mistral\n(explanation)',
+    'mistral_nr':       'Mistral\n(no explanation)',
 }
 
 METHOD_COLORS = {
@@ -123,8 +123,6 @@ for col in ['new_F1', 'soft_F1', 'soft_precision', 'soft_recall']:
     df[col] = df[col].replace([np.inf, -np.inf], np.nan)
 
 SOFT_METRICS = [
-    ('F1',             'F1 (original)'),
-    ('new_F1',         'New F1\n(2TP+0.6PP)/(2TP+PP+FP+FN)'),
     ('soft_F1',        'Soft F1\n(2TP+0.6PP)/(2TP+0.6PP+FP+FN)'),
     ('soft_precision', 'Soft Precision\n(TP+0.6PP)/(TP+PP+FP)'),
     ('soft_recall',    'Soft Recall\n(TP+0.6PP)/(TP+PP+FN)'),
@@ -386,7 +384,7 @@ def _scatter_panels(x_col, y_col, x_label, y_label, fig_title, out_name):
 # =============================================================================
 def fig5_soft_metrics_table():
     cols  = [m for m, _ in SOFT_METRICS]
-    short = ['F1', 'New F1', 'Soft F1', 'Soft Prec.', 'Soft Rec.']
+    short = ['Soft F1', 'Soft Prec.', 'Soft Rec.']
 
     # ── CSV summary ──────────────────────────────────────────────────────────
     rows = []
@@ -569,10 +567,10 @@ def fig7_correlation_table():
 
 
 # =============================================================================
-# FIGURE 6 – Boxplots: F1 / new_F1 / soft_precision / soft_recall  (2×2 grid)
+# FIGURE 6 – Boxplots: soft_F1 / soft_precision / soft_recall  (1×3)
 # =============================================================================
 def fig6_soft_metrics_boxplot():
-    fig, axes = plt.subplots(2, 3, figsize=(20, 9), sharey=False)
+    fig, axes = plt.subplots(1, 3, figsize=(20, 6), sharey=False)
     fig.suptitle('Soft Metrics by AI Method (all datasets combined)',
                  fontsize=14, fontweight='bold', y=1.01)
 
@@ -614,9 +612,6 @@ def fig6_soft_metrics_boxplot():
                 ax.text(i, mean_val + 0.04, f'{mean_val:.2f}',
                         ha='center', va='bottom', fontsize=6.5, color='#333333')
 
-    # Hide unused panels (2×3 grid has 6 cells, we use 5)
-    for ax in axes.flat[len(SOFT_METRICS):]:
-        ax.axis('off')
 
     handles = [mpatches.Patch(color=METHOD_COLORS[m],
                                label=METHOD_LABELS[m].replace('\n', ' '))

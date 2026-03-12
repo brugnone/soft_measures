@@ -183,9 +183,9 @@ for row_i, (metric, ylabel_base, _) in enumerate(METRICS_F):
         draw_panel(ax, ds, metric, ylabel=ylabel, title=title, show_xlabel=show_x)
 
 # Shared legend
-r_patches  = [mpatches.Patch(color=METHOD_COLORS[p[0]], label=p[2] + ' (R)', alpha=BOX_ALPHA)
+r_patches  = [mpatches.Patch(color=METHOD_COLORS[p[0]], label=p[2] + ' (E)', alpha=BOX_ALPHA)
                for p in MODEL_PAIRS]
-nr_patches = [mpatches.Patch(color=METHOD_COLORS[p[1]], label=p[2] + ' (NR)', alpha=BOX_ALPHA)
+nr_patches = [mpatches.Patch(color=METHOD_COLORS[p[1]], label=p[2] + ' (NE)', alpha=BOX_ALPHA)
                for p in MODEL_PAIRS]
 gt_line    = mlines.Line2D([], [], color=GT_COLOR, linewidth=1.2, linestyle='--', label='GT mean')
 gt_band    = mpatches.Patch(color=GT_COLOR, alpha=GT_ALPHA, label='GT ±1 SD')

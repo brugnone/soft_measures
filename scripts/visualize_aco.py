@@ -122,8 +122,7 @@ df['dataset_clean'] = df['dataset_name'].str.replace(
 def make_f1_fig(datasets, out_name, suptitle):
     n_ds = len(datasets)
     fig, axes = plt.subplots(nrows=1, ncols=n_ds,
-                              figsize=(2.8*n_ds, 4.0),
-                              constrained_layout=True)
+                              figsize=(2.8*n_ds, 4.0))
     if n_ds == 1:
         axes = [axes]
 
@@ -150,7 +149,8 @@ def make_f1_fig(datasets, out_name, suptitle):
                bbox_to_anchor=(0.5, -0.05 if n_ds > 1 else -0.12),
                ncol=min(6, N_MODELS), fontsize=7, frameon=False,
                handlelength=1.4, columnspacing=0.8)
-    fig.suptitle(suptitle, fontsize=10, fontweight='bold', y=1.01)
+    fig.suptitle(suptitle, fontsize=10, fontweight='bold')
+    fig.tight_layout(rect=[0, 0, 1, 0.93])
     out = OUT_DIR / out_name
     fig.savefig(out, dpi=200, bbox_inches='tight')
     plt.close(fig)
@@ -162,7 +162,7 @@ make_f1_fig(DATASET_ORDER, 'figH_aco_f1_boxplots.png',
 # Combined (all datasets pooled) — one panel per model
 def make_f1_combined_fig(out_name, suptitle):
     """Single panel with all datasets pooled, one box per model."""
-    fig, ax = plt.subplots(figsize=(3.5, 4.0), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(3.5, 4.0))
 
     data_list, colours = [], []
     for m_key in MODEL_KEYS:
@@ -181,7 +181,8 @@ def make_f1_combined_fig(out_name, suptitle):
                bbox_to_anchor=(0.5, -0.12),
                ncol=min(6, N_MODELS), fontsize=7, frameon=False,
                handlelength=1.4, columnspacing=0.8)
-    fig.suptitle(suptitle, fontsize=10, fontweight='bold', y=1.01)
+    fig.suptitle(suptitle, fontsize=10, fontweight='bold')
+    fig.tight_layout(rect=[0, 0, 1, 0.93])
     out = OUT_DIR / out_name
     fig.savefig(out, dpi=200, bbox_inches='tight')
     plt.close(fig)
@@ -189,6 +190,80 @@ def make_f1_combined_fig(out_name, suptitle):
 
 make_f1_combined_fig('figH2_aco_f1_combined.png',
                      'ACO — Soft F1 (all datasets combined)')
+
+# ── Section 1b: TP / PP / FP / FN boxplots by model and dataset ───────────────
+def make_tpppfpfn_fig():
+    metrics = ['TP', 'PP', 'FP', 'FN']
+    metric_labels = {
+        'TP': 'True Positives (TP)',
+        'PP': 'Partial Positives (PP)',
+        'FP': 'False Positives (FP)',
+        'FN': 'False Negatives (FN)',
+    }
+
+    n_datasets = len(DATASET_ORDER)
+    bar_width  = 0.18
+    group_gap  = 1.5
+
+    fig, axes = plt.subplots(2, 2, figsize=(16, 11))
+    fig.suptitle('Edge Classification Metrics by ACO Model and Dataset',
+                 fontsize=14, fontweight='bold')
+
+    colours = [MODEL_COLORS.get(m, '#888888') for m in MODEL_KEYS]
+
+    for ax, metric in zip(axes.flat, metrics):
+        for g_idx, ds in enumerate(DATASET_ORDER):
+            sub = df[df['dataset_clean'] == ds]
+            group_center = g_idx * (N_MODELS * bar_width + group_gap)
+
+            for m_idx, m_key in enumerate(MODEL_KEYS):
+                vals = sub.loc[sub['model_name'] == m_key, metric].dropna().values
+                x    = group_center + m_idx * bar_width
+
+                if len(vals) == 0:
+                    continue
+
+                bplot = ax.boxplot(
+                    vals,
+                    positions=[x],
+                    widths=bar_width * 0.85,
+                    patch_artist=True,
+                    showfliers=False,
+                    showmeans=False,
+                    medianprops=dict(color='white', linewidth=1.5),
+                    whiskerprops=dict(linewidth=0.9),
+                    capprops=dict(linewidth=0.9),
+                )
+                for patch in bplot['boxes']:
+                    patch.set_facecolor(colours[m_idx])
+                    patch.set_alpha(BOX_ALPHA)
+
+        group_centers = [g * (N_MODELS * bar_width + group_gap) +
+                         (N_MODELS - 1) * bar_width / 2
+                         for g in range(n_datasets)]
+        ax.set_xticks(group_centers)
+        ax.set_xticklabels([DS_LABELS[ds] for ds in DATASET_ORDER],
+                           fontsize=10, fontweight='bold')
+        ax.set_ylabel('Edge Count', fontsize=10)
+        ax.set_title(metric_labels[metric], fontsize=12, fontweight='bold', pad=6)
+        ax.yaxis.grid(True, alpha=0.3, linestyle='--')
+        ax.set_axisbelow(True)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+
+    handles = [mpatches.Patch(color=MODEL_COLORS[m], label=lbl.replace('\n', ' '), alpha=BOX_ALPHA)
+               for m, lbl in FOCUS_MODELS]
+    fig.legend(handles=handles, title='ACO Model', title_fontsize=9,
+               loc='lower center', ncol=min(6, N_MODELS), frameon=True, fontsize=8,
+               bbox_to_anchor=(0.5, -0.06), borderpad=0.8)
+
+    fig.tight_layout(rect=[0, 0, 1, 0.95])
+    out = OUT_DIR / 'figH3_aco_tp_pp_fp_fn.png'
+    fig.savefig(out, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    print(f'Saved -> {out}')
+
+make_tpppfpfn_fig()
 
 # ── Section 2: Graph metrics from ACO adjacency JSONs ─────────────────────────
 
@@ -202,6 +277,8 @@ def normalize_osw(name):
         return name.split(' - ')[-1].strip()
     if ' -' in name:
         return name.split(' -')[-1].strip()
+    if '-' in name:
+        return name.split('-')[-1].strip()
     return name.strip()
 
 def normalize_rs(name):
@@ -296,8 +373,12 @@ for ds in INTERNAL_DS:
 
 # ACO models
 ACO_MODEL_DIRS = [
-    ('aco_mistral', 'aco-mistral'),
-    ('aco_qwen',    'aco-qwen'),
+    ('aco_mistral',         'aco-mistral'),
+    ('aco_qwen',            'aco-qwen'),
+    ('aco_gpt_5_mini',      'gpt-5-mini'),
+    ('aco_gpt_52',          'gpt-5.2'),
+    ('aco_gemini_25_flash', 'gemini-2.5-flash'),
+    ('aco_gemini_3_flash',  'gemini-3-flash'),
 ]
 for model_dir, model_key in ACO_MODEL_DIRS:
     for ds in INTERNAL_DS:
@@ -322,10 +403,21 @@ GT_COLOR  = '#555555'
 GT_ALPHA  = 0.15
 
 ACO_COLORS = {
-    'aco-mistral': '#FF9F1C',
-    'aco-qwen':    '#E84855',
+    'aco-mistral':      '#FF9F1C',
+    'aco-qwen':         '#E84855',
+    'gpt-5-mini':       '#2E86AB',
+    'gpt-5.2':          '#3BB273',
+    'gemini-2.5-flash': '#E87040',
+    'gemini-3-flash':   '#9B5DE5',
 }
-ACO_MODEL_LIST = [('aco-mistral', 'ACO\nMistral'), ('aco-qwen', 'ACO\nQwen')]
+ACO_MODEL_LIST = [
+    ('aco-mistral',      'ACO\nMistral'),
+    ('aco-qwen',         'ACO\nQwen'),
+    ('gpt-5-mini',       'GPT-5\nMini'),
+    ('gpt-5.2',          'GPT-5.2'),
+    ('gemini-2.5-flash', 'Gemini\n2.5 Flash'),
+    ('gemini-3-flash',   'Gemini\n3 Flash'),
+]
 ACO_KEYS   = [m[0] for m in ACO_MODEL_LIST]
 ACO_LABELS = [m[1] for m in ACO_MODEL_LIST]
 ACO_POS    = np.arange(len(ACO_MODEL_LIST)) * GAP
@@ -566,5 +658,107 @@ corr_df = pd.DataFrame(corr_rows)
 corr_df.to_csv(OUT_DIR / 'aco_node_edge_correlations.csv', index=False)
 print('\nCorrelation summary:')
 print(corr_df.to_string(index=False))
+
+# ── Section 4: Soft metrics boxplots ──────────────────────────────────────────
+PP_WEIGHT = 0.6
+df['soft_num']       = 2 * df['TP'] + PP_WEIGHT * df['PP']
+df['new_F1']         = df['soft_num'] / (2 * df['TP'] + df['PP'] + df['FP'] + df['FN'])
+df['soft_F1']        = df['soft_num'] / (df['soft_num'] + df['FP'] + df['FN'])
+df['soft_precision'] = (df['TP'] + PP_WEIGHT * df['PP']) / (df['TP'] + df['PP'] + df['FP'])
+df['soft_recall']    = (df['TP'] + PP_WEIGHT * df['PP']) / (df['TP'] + df['PP'] + df['FN'])
+for col in ['new_F1', 'soft_F1', 'soft_precision', 'soft_recall']:
+    df[col] = df[col].replace([np.inf, -np.inf], np.nan)
+
+SOFT_METRICS_LIST = [
+    ('soft_F1',        'Soft F1\n(2TP+0.6PP)/(2TP+0.6PP+FP+FN)'),
+    ('soft_precision', 'Soft Precision\n(TP+0.6PP)/(TP+PP+FP)'),
+    ('soft_recall',    'Soft Recall\n(TP+0.6PP)/(TP+PP+FN)'),
+]
+
+def make_soft_metrics_fig(datasets, out_name, suptitle):
+    """Per-dataset soft metrics boxplots (5 metrics × n_datasets grid)."""
+    n_ds  = len(datasets)
+    n_met = len(SOFT_METRICS_LIST)
+    fig, axes = plt.subplots(nrows=n_met, ncols=n_ds,
+                              figsize=(5.0 * n_ds, 5.5 * n_met),
+                              sharey=False)
+    if n_ds == 1:
+        axes = axes[:, np.newaxis]
+
+    colours = [MODEL_COLORS.get(m, '#888888') for m in MODEL_KEYS]
+
+    for row_i, (col, ylabel) in enumerate(SOFT_METRICS_LIST):
+        for col_j, ds in enumerate(datasets):
+            ax = axes[row_i, col_j]
+            sub = df[df['dataset_clean'] == ds]
+            data_list = [sub.loc[sub['model_name'] == m, col].dropna().values
+                         if len(sub.loc[sub['model_name'] == m]) else [np.nan]
+                         for m in MODEL_KEYS]
+            draw_boxes(ax, data_list, POSITIONS, colours)
+            show_x = (row_i == n_met - 1)
+            setup_ax(ax,
+                     ylabel=ylabel.split('\n')[0] if col_j == 0 else None,
+                     title=DS_LABELS.get(ds, ds) if row_i == 0 else None,
+                     show_xlabels=show_x)
+            ax.set_ylim(-0.05, 1.10)
+            ax.axhline(0.5, color='grey', linewidth=0.8, linestyle=':', alpha=0.5, zorder=1)
+
+    handles = [mpatches.Patch(color=MODEL_COLORS[m], label=lbl.replace('\n', ' '), alpha=BOX_ALPHA)
+               for m, lbl in FOCUS_MODELS]
+    fig.legend(handles=handles, title='ACO Model', title_fontsize=9,
+               loc='lower center', bbox_to_anchor=(0.5, -0.08),
+               ncol=min(6, N_MODELS), fontsize=8, frameon=True,
+               borderpad=0.8, handlelength=1.4, columnspacing=0.8)
+    fig.suptitle(suptitle, fontsize=14, fontweight='bold', y=1.01)
+    fig.tight_layout()
+    out = OUT_DIR / out_name
+    fig.savefig(out, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    print(f'Saved -> {out}')
+
+
+def make_soft_metrics_combined_fig(out_name, suptitle):
+    """All datasets pooled: one row per metric, one box per model."""
+    n_met = len(SOFT_METRICS_LIST)
+    fig, axes = plt.subplots(nrows=1, ncols=n_met,
+                              figsize=(20, 6),
+                              sharey=False)
+    colours = [MODEL_COLORS.get(m, '#888888') for m in MODEL_KEYS]
+
+    for ax, (col, ylabel) in zip(axes, SOFT_METRICS_LIST):
+        data_list = [df.loc[df['model_name'] == m, col].dropna().values
+                     if len(df.loc[df['model_name'] == m]) else [np.nan]
+                     for m in MODEL_KEYS]
+        draw_boxes(ax, data_list, POSITIONS, colours)
+        setup_ax(ax, ylabel=col if ax is axes[0] else None,
+                 title=ylabel.replace('\n', '\n'), show_xlabels=True)
+        ax.set_ylim(-0.05, 1.10)
+        ax.axhline(0.5, color='grey', linewidth=0.8, linestyle=':', alpha=0.5, zorder=1)
+        # Mean annotation
+        for i, m in enumerate(MODEL_KEYS):
+            mean_val = df.loc[df['model_name'] == m, col].mean()
+            if np.isfinite(mean_val):
+                ax.text(POSITIONS[i], mean_val + 0.04, f'{mean_val:.2f}',
+                        ha='center', va='bottom', fontsize=6, color='#333333')
+
+    handles = [mpatches.Patch(color=MODEL_COLORS[m], label=lbl.replace('\n', ' '), alpha=BOX_ALPHA)
+               for m, lbl in FOCUS_MODELS]
+    fig.legend(handles=handles, title='ACO Model', title_fontsize=9,
+               loc='lower center', bbox_to_anchor=(0.5, -0.08),
+               ncol=min(6, N_MODELS), fontsize=8, frameon=True,
+               borderpad=0.8, handlelength=1.4, columnspacing=0.8)
+    fig.suptitle(suptitle, fontsize=14, fontweight='bold', y=1.01)
+    fig.tight_layout()
+    out = OUT_DIR / out_name
+    fig.savefig(out, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    print(f'Saved -> {out}')
+
+
+make_soft_metrics_fig(DATASET_ORDER,
+                      'figL_aco_soft_metrics.png',
+                      'ACO — Soft Metrics by model and dataset')
+make_soft_metrics_combined_fig('figL2_aco_soft_metrics_combined.png',
+                               'ACO — Soft Metrics (all datasets combined)')
 
 print('\nDone.')

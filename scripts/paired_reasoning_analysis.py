@@ -12,6 +12,7 @@ Steps:
 Output directory: C:\\Users\\Nbrug\\Desktop\\fcm_paired_analysis\\
 """
 
+import sys
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -20,6 +21,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+sys.stdout.reconfigure(encoding='utf-8')
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 DESKTOP  = Path(r'C:\Users\Nbrug\Desktop')
@@ -72,7 +74,7 @@ def soft_f1(df):
 
 # ── 1. Load combined CSV ───────────────────────────────────────────────────────
 print("Loading combined CSV...")
-df = pd.read_csv(DESKTOP / 'all_fcm_results_combined.csv')
+df = pd.read_csv(DESKTOP / 'all_non-aco_fcm_results_combined.csv')
 df['soft_F1'] = soft_f1(df).replace([np.inf, -np.inf], np.nan)
 print(f"  {len(df)} rows, {df['method'].nunique()} methods")
 
@@ -92,7 +94,7 @@ for method in sorted(df['method'].unique()):
     sub = df[df['method'] == method].copy()
     out_csv = dest_dir / f'{method}_results.csv'
     sub.to_csv(out_csv, index=False)
-    print(f"  {model_key}/{reason_label}: {len(sub)} rows → {out_csv.name}")
+    print(f"  {model_key}/{reason_label}: {len(sub)} rows -> {out_csv.name}")
 
 
 # ── 3. Build paired dataset ───────────────────────────────────────────────────
@@ -124,12 +126,12 @@ print(f"\n  Total paired rows: {len(paired)}")
 # Save full paired CSV
 paired_out = OUT_DIR / 'paired_soft_f1_all.csv'
 paired.to_csv(paired_out, index=False)
-print(f"  Saved → {paired_out}")
+print(f"  Saved -> {paired_out}")
 
 
 # ── 4. Summary statistics ─────────────────────────────────────────────────────
 print("\n" + "="*72)
-print("PAIRED DIFFERENCE SUMMARY  (reasoning – no reasoning, soft F1)")
+print("PAIRED DIFFERENCE SUMMARY  (explanation - no explanation, soft F1)")
 print("="*72)
 
 summary_rows = []
@@ -199,7 +201,7 @@ all_summary = pd.DataFrame(summary_rows + model_rows + [{
 }])
 summary_out = OUT_DIR / 'paired_summary_table.csv'
 all_summary.to_csv(summary_out, index=False)
-print(f"\n  Saved → {summary_out}")
+print(f"\n  Saved -> {summary_out}")
 
 
 # ── 5. Figure: mean delta soft-F1 per model, faceted by dataset ───────────────
@@ -215,7 +217,7 @@ plt.rcParams.update({
 
 # Figure A: boxplot of delta per model, one panel per dataset
 fig, axes = plt.subplots(1, 4, figsize=(18, 5), sharey=True)
-fig.suptitle('Soft F1: Reasoning – No Reasoning  (paired differences per participant)',
+fig.suptitle('Soft F1: Explanation – No Explanation  (paired differences per participant)',
              fontsize=13, fontweight='bold')
 
 for ax, ds in zip(axes, DATASET_ORDER):
@@ -238,7 +240,7 @@ for ax, ds in zip(axes, DATASET_ORDER):
     ax.set_xticks(range(1, len(MODEL_PAIRS)+1))
     ax.set_xticklabels([MODEL_DISPLAY[m].replace(' ', '\n') for m in MODEL_PAIRS],
                        fontsize=7.5, rotation=30, ha='right')
-    ax.set_ylabel('Δ Soft F1 (reasoning − no reasoning)' if ax == axes[0] else '')
+    ax.set_ylabel('Δ Soft F1 (explanation − no explanation)' if ax == axes[0] else '')
 
 handles = [mpatches.Patch(color=MODEL_COLORS[m], label=MODEL_DISPLAY[m]) for m in MODEL_PAIRS]
 fig.legend(handles=handles, loc='lower center', ncol=6, frameon=True,
@@ -260,8 +262,8 @@ bars = ax.bar(x, means, yerr=ses, capsize=5, color=colors, alpha=0.85,
 ax.axhline(0, color='black', linewidth=1.0, alpha=0.6)
 ax.set_xticks(x)
 ax.set_xticklabels([MODEL_DISPLAY[m] for m in MODEL_PAIRS], fontsize=10)
-ax.set_ylabel('Mean Δ Soft F1 (reasoning − no reasoning)', fontsize=10)
-ax.set_title('Average Soft F1 Gain from Reasoning (all datasets combined)',
+ax.set_ylabel('Mean Δ Soft F1 (explanation − no explanation)', fontsize=10)
+ax.set_title('Average Soft F1 Gain from Explanation (all datasets combined)',
              fontsize=12, fontweight='bold')
 
 # Annotate bars with mean value and significance
@@ -291,12 +293,12 @@ heat_data = np.array([
     for m in MODEL_PAIRS
 ])
 im = ax.imshow(heat_data, cmap='RdYlGn', vmin=-0.25, vmax=0.25, aspect='auto')
-plt.colorbar(im, ax=ax, label='Mean Δ Soft F1 (reasoning − no reasoning)')
+plt.colorbar(im, ax=ax, label='Mean Δ Soft F1 (explanation − no explanation)')
 ax.set_xticks(range(len(DATASET_ORDER)))
 ax.set_xticklabels([DATASET_LABELS[ds] for ds in DATASET_ORDER], fontsize=11)
 ax.set_yticks(range(len(MODEL_PAIRS)))
 ax.set_yticklabels([MODEL_DISPLAY[m] for m in MODEL_PAIRS], fontsize=11)
-ax.set_title('Mean Δ Soft F1 (reasoning − no reasoning) by Model × Dataset',
+ax.set_title('Mean Δ Soft F1 (explanation − no explanation) by Model × Dataset',
              fontsize=12, fontweight='bold', pad=10)
 for i, m in enumerate(MODEL_PAIRS):
     for j, ds in enumerate(DATASET_ORDER):
