@@ -49,6 +49,10 @@ METHOD_ORDER = [
     'gemini25flash_nr',
     'gemini3flash',
     'gemini3flash_nr',
+    'qwen',
+    'qwen_nr',
+    'mistral',
+    'mistral_nr',
 ]
 
 METHOD_LABELS = {
@@ -60,6 +64,10 @@ METHOD_LABELS = {
     'gemini25flash_nr': 'Gemini 2.5 Flash\n(no reasoning)',
     'gemini3flash':     'Gemini 3 Flash\n(reasoning)',
     'gemini3flash_nr':  'Gemini 3 Flash\n(no reasoning)',
+    'qwen':             'Qwen\n(reasoning)',
+    'qwen_nr':          'Qwen\n(no reasoning)',
+    'mistral':          'Mistral\n(reasoning)',
+    'mistral_nr':       'Mistral\n(no reasoning)',
 }
 
 METHOD_COLORS = {
@@ -71,6 +79,10 @@ METHOD_COLORS = {
     'gemini25flash_nr': '#F4A27A',
     'gemini3flash':     '#9B5DE5',
     'gemini3flash_nr':  '#C89EEF',
+    'qwen':             '#E84855',
+    'qwen_nr':          '#F4929A',
+    'mistral':          '#FF9F1C',
+    'mistral_nr':       '#FFCC7A',
 }
 
 DATASET_ORDER  = ['biodiversity', 'flpp', 'osw', 'red_snapper']
@@ -136,7 +148,7 @@ def r_with_se(a, b):
 # FIGURE 1 – F1 by method, faceted by dataset
 # =============================================================================
 def fig1_f1_by_method():
-    fig, axes = plt.subplots(2, 2, figsize=(14, 9), sharey=False)
+    fig, axes = plt.subplots(2, 2, figsize=(22, 11), sharey=False)
     fig.suptitle('F1 Score by AI Method and Dataset', fontsize=14,
                  fontweight='bold', y=1.01)
 
@@ -184,7 +196,7 @@ def fig1_f1_by_method():
     handles = [mpatches.Patch(color=METHOD_COLORS[m], label=METHOD_LABELS[m].replace('\n', ' '))
                for m in METHOD_ORDER]
     fig.legend(handles=handles, title='AI Method', title_fontsize=9,
-               loc='lower center', ncol=4, frameon=True, fontsize=8,
+               loc='lower center', ncol=6, frameon=True, fontsize=8,
                bbox_to_anchor=(0.5, -0.08), borderpad=0.8)
 
     fig.tight_layout()
@@ -258,7 +270,7 @@ def fig2_tpppfpfn():
                                label=METHOD_LABELS[m].replace('\n', ' '))
                for m in METHOD_ORDER]
     fig.legend(handles=handles, title='AI Method', title_fontsize=9,
-               loc='lower center', ncol=4, frameon=True, fontsize=8,
+               loc='lower center', ncol=6, frameon=True, fontsize=8,
                bbox_to_anchor=(0.5, -0.06), borderpad=0.8)
 
     fig.tight_layout()
@@ -277,8 +289,8 @@ def _scatter_panels(x_col, y_col, x_label, y_label, fig_title, out_name):
     points coloured by dataset, marker shape by dataset.
     Includes identity line and per-dataset Pearson r annotation.
     """
-    ncols, nrows = 4, 2
-    fig, axes = plt.subplots(nrows, ncols, figsize=(18, 9))
+    ncols, nrows = 6, 2
+    fig, axes = plt.subplots(nrows, ncols, figsize=(26, 9))
     fig.suptitle(fig_title, fontsize=14, fontweight='bold', y=1.02)
 
     ax_list = axes.flat
@@ -610,7 +622,7 @@ def fig6_soft_metrics_boxplot():
                                label=METHOD_LABELS[m].replace('\n', ' '))
                for m in METHOD_ORDER]
     fig.legend(handles=handles, title='AI Method', title_fontsize=9,
-               loc='lower center', ncol=4, frameon=True, fontsize=8,
+               loc='lower center', ncol=6, frameon=True, fontsize=8,
                bbox_to_anchor=(0.5, -0.08), borderpad=0.8)
 
     fig.tight_layout()
