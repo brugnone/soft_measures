@@ -206,8 +206,8 @@ def score_new_files(
             try:
                 # Score the FCM pair
                 result_df = score_fcm_with_scorer(
-                    fcm1_path=ai_file,
-                    fcm2_path=gt_file,
+                    fcm1_path=gt_file,   # GT = reference, encoded WITHOUT prompt
+                    fcm2_path=ai_file,   # AI = prediction, encoded WITH prompt
                     scorer=scorer,
                     output_dir=output_dir,
                     output_format='csv',

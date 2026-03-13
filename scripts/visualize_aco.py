@@ -15,7 +15,7 @@ from pathlib import Path
 from scipy import stats
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
-ACO_CSV    = Path(r'C:\Users\Nbrug\Desktop\all_aco_results.csv')
+ACO_CSV    = Path(r'C:\Users\Nbrug\Desktop\all_aco_results_final.csv')
 ACO_ROOT   = Path(r'C:\Users\Nbrug\Desktop\aco_adjacencies')
 OUT_DIR    = Path(r'C:\Users\Nbrug\Desktop\fcm_visualizations_aco')
 OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -33,14 +33,12 @@ plt.rcParams.update({
 
 # ACO uses same colour palette concept: one colour per model
 MODEL_COLORS = {
-    'gpt-5-mini':       '#2E86AB',
-    'gpt-5.2':          '#3BB273',
-    'gemini-2.5-flash': '#E87040',
-    'gemini-3-flash':   '#9B5DE5',
-    'qwen':             '#E84855',
-    'mistral':          '#FF9F1C',
-    'aco-qwen':         '#C04000',
-    'aco-mistral':      '#1B6CA8',
+    'aco-gpt-5-mini':       '#2E86AB',
+    'aco-gpt-5.2':          '#3BB273',
+    'aco-gemini-2.5-flash': '#E87040',
+    'aco-gemini-3-flash':   '#9B5DE5',
+    'aco-qwen':             '#C04000',
+    'aco-mistral':          '#1B6CA8',
 }
 
 GT_COLOR  = '#555555'
@@ -50,12 +48,12 @@ FLIER_SIZE = 2.0
 
 # ── Focus models & display labels ─────────────────────────────────────────────
 FOCUS_MODELS = [
-    ('gpt-5-mini',       'GPT-5-mini'),
-    ('gpt-5.2',          'GPT-5.2'),
-    ('gemini-2.5-flash', 'Gemini\n2.5 Flash'),
-    ('gemini-3-flash',   'Gemini\n3 Flash'),
-    ('aco-qwen',         'ACO-Qwen'),
-    ('aco-mistral',      'ACO-Mistral'),
+    ('aco-gpt-5-mini',       'GPT-5-mini\n+ACO'),
+    ('aco-gpt-5.2',          'GPT-5.2\n+ACO'),
+    ('aco-gemini-2.5-flash', 'Gemini\n2.5 Flash\n+ACO'),
+    ('aco-gemini-3-flash',   'Gemini\n3 Flash\n+ACO'),
+    ('aco-qwen',             'ACO-Qwen'),
+    ('aco-mistral',          'ACO-Mistral'),
 ]
 MODEL_KEYS   = [m[0] for m in FOCUS_MODELS]
 MODEL_LABELS = [m[1] for m in FOCUS_MODELS]

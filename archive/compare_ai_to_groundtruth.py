@@ -216,8 +216,8 @@ def compare_ai_to_groundtruth(
                 
                 # Score the pair using pre-initialized scorer
                 result = score_fcm_with_scorer(
-                    fcm1_path=ai_path,
-                    fcm2_path=gt_path,
+                    fcm1_path=gt_path,   # GT = reference, encoded WITHOUT prompt
+                    fcm2_path=ai_path,   # AI = prediction, encoded WITH prompt
                     scorer=scorer,
                     output_dir=pair_output_dir,
                     output_format='csv',

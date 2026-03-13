@@ -27,7 +27,7 @@ from scipy import stats
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
-ALL_ACO_CSV    = Path(r'C:\Users\Nbrug\Desktop\all_aco_results.csv')
+ALL_ACO_CSV    = Path(r'C:\Users\Nbrug\Desktop\all_aco_results_final.csv')
 ACO_ADJ_DIR    = Path(r'C:\Users\Nbrug\Desktop\aco_adjacencies')
 GT_DIR         = ACO_ADJ_DIR / 'gt'
 OUT_DIR        = Path(r'C:\Users\Nbrug\Desktop\fcm_visualizations_aco')
@@ -46,25 +46,21 @@ plt.rcParams.update({
 
 # Colour per model (same hues, new labels)
 MODEL_COLORS = {
-    'gpt-5-mini':        '#2E86AB',
-    'gpt-5.2':           '#3BB273',
-    'gemini-2.5-flash':  '#E87040',
-    'gemini-3-flash':    '#9B5DE5',
-    'qwen':              '#E84855',
-    'mistral':           '#FF9F1C',
-    'aco-qwen':          '#C84B9E',   # distinct magenta
-    'aco-mistral':       '#8B4513',   # sienna
+    'aco-gpt-5-mini':        '#2E86AB',
+    'aco-gpt-5.2':           '#3BB273',
+    'aco-gemini-2.5-flash':  '#E87040',
+    'aco-gemini-3-flash':    '#9B5DE5',
+    'aco-qwen':              '#C84B9E',   # distinct magenta
+    'aco-mistral':           '#8B4513',   # sienna
 }
 
 MODEL_LABELS = {
-    'gpt-5-mini':        'GPT-5-mini',
-    'gpt-5.2':           'GPT-5.2',
-    'gemini-2.5-flash':  'Gemini 2.5\nFlash',
-    'gemini-3-flash':    'Gemini 3\nFlash',
-    'qwen':              'Qwen',
-    'mistral':           'Mistral',
-    'aco-qwen':          'ACO-Qwen',
-    'aco-mistral':       'ACO-Mistral',
+    'aco-gpt-5-mini':        'GPT-5-mini\n+ACO',
+    'aco-gpt-5.2':           'GPT-5.2\n+ACO',
+    'aco-gemini-2.5-flash':  'Gemini 2.5\nFlash+ACO',
+    'aco-gemini-3-flash':    'Gemini 3\nFlash+ACO',
+    'aco-qwen':              'ACO-Qwen',
+    'aco-mistral':           'ACO-Mistral',
 }
 
 BOX_ALPHA  = 0.85
@@ -73,8 +69,8 @@ GT_COLOR   = '#555555'
 GT_ALPHA   = 0.15
 
 # Models in display order
-MODEL_ORDER = ['gpt-5-mini', 'gpt-5.2', 'gemini-2.5-flash', 'gemini-3-flash',
-               'qwen', 'mistral', 'aco-qwen', 'aco-mistral']
+MODEL_ORDER = ['aco-gpt-5-mini', 'aco-gpt-5.2', 'aco-gemini-2.5-flash', 'aco-gemini-3-flash',
+               'aco-qwen', 'aco-mistral']
 
 # Dataset order used by aco results
 DATASET_ORDER  = ['biodiversity', 'flpp', 'gulf-osw', 'red-snapper']

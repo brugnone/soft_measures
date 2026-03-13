@@ -663,7 +663,7 @@ def main():
     parser.add_argument('--threshold', type=float, default=0.6, help='Similarity threshold (default: 0.6)')
     parser.add_argument('--model-name', default='Qwen/Qwen3-Embedding-0.6B', help='Model name for scoring')
     parser.add_argument('--tp-scale', type=float, default=1.0, help='True positive scale (default: 1.0)')
-    parser.add_argument('--pp-scale', type=float, default=1.1, help='Partial positive scale (default: 1.1)')
+    parser.add_argument('--pp-scale', type=float, default=0.6, help='Partial positive scale (default: 0.6)')
     parser.add_argument('--batch-size', type=int, default=2, help='Batch size (default: 2)')
     parser.add_argument('--seed', type=int, default=42, help='Random seed (default: 42)')
 
